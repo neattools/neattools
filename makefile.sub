@@ -1,0 +1,38 @@
+SRCS = $(shell echo *.cpp)
+OBJS = $(SRCS:%.cpp=$(ARCH)/%.o)
+DEPEND = $(ARCH)/.depend
+DNAME = $(shell basename `pwd`)
+DDEST = ../$(LIB_DIR)/lib$(DNAME).so
+SDEST = ../$(LIB_DIR)/lib$(DNAME).a
+
+.SUFFIXES: .cpp .o
+
+$(ARCH)/%.o: %.cpp
+	$(CC) -c $(CFLAGS) $(INCLUDES) -o $@ $<
+
+all::
+	@if [ -d $(ARCH) ]; then true; else mkdir -p $(ARCH); fi
+
+all:: $(SDEST) $(DDEST)
+
+$(SDEST): $(OBJS)
+	$(RM) $@
+	$(AR) $(AR_FLAGS) $@ $(OBJS)
+
+$(DDEST): $(SDEST)
+	$(CC) -shared -o $@ $(SDEST)
+
+depend:
+	@if [ -d $(ARCH) ]; then true; else mkdir -p $(ARCH); fi
+	for d in $(SRCS);\
+ do (printf $(ARCH)/);\
+ ($(CC) -MM $(CFLAGS) $(INCLUDES) $$d);\
+ done > $(DEPEND)
+
+ifeq ($(DEPEND),$(shell echo *$(DEPEND)))
+sinclude $(DEPEND)
+endif
+
+.PHONY : clean
+clean : 
+	$(RM) -r $(ARCH) $(DDEST) $(SDEST)

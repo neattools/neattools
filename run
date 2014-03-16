@@ -1,0 +1,13 @@
+#!/bin/sh
+
+ARCH=`arch`
+
+case $ARCH in
+  sun4 | i86pc) OSTYPE=solaris_$ARCH;;
+  i686) OSTYPE=linux_$ARCH;;
+  *) OSTYPE=unknown_$ARCH;;
+esac
+
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./lib/$OSTYPE
+export LD_LIBRARY_PATH
+./bin/$OSTYPE/oopw

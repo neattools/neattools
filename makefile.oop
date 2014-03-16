@@ -1,0 +1,56 @@
+export
+
+arch=$(shell arch)
+MAKE=make
+
+ifeq ($(arch),sun4)
+ EXTS =-lnsl -lsocket
+ EXTW =-lnsl -lsocket -L/usr/X11R6/lib -lX11
+endif
+
+ifeq ($(arch),i86pc)
+ EXTS =-lnsl -lsocket
+ EXTW =-lnsl -lsocket -L/usr/X11R6/lib -lX11
+ MAKE=gmake
+endif
+
+
+CFLAGS=-O2 -fPIC -DBSD_COMP -D$(arch)
+LIBS=-lm -lpthread $(EXTS)
+INCLUDES=-I../lang -I../util -I../io -I../net
+RM=rm
+CP=cp
+CC=gcc
+LIB=lib
+
+all :
+	$(MAKE) -C lang -f ../makefile.sub
+	$(MAKE) -C io -f ../makefile.sub
+	$(MAKE) -C net -f ../makefile.sub
+	$(MAKE) -C util -f ../makefile.sub
+	$(MAKE) -C main -f ../makefile.sub
+	@if [-d $(LIB)]; then true; else mkdir -p $(LIB); fi
+	$(CC) -o lib/libbase.so -shared lang/*.o io/*.o net/*.o util/*.o
+	$(CC) -o oop main/oop.o lang/*.o io/*.o net/*.o util/*.o $(LIBS)
+
+tgz :
+	tar cvf oop.tar lang util io net main makefile
+	-$(RM) oop.tar.gz
+	gzip oop.tar
+
+depend :
+	$(MAKE) -C lang -f ../makefile.sub depend
+	$(MAKE) -C io -f ../makefile.sub depend
+	$(MAKE) -C net -f ../makefile.sub depend
+	$(MAKE) -C util -f ../makefile.sub depend
+	$(MAKE) -C main -f ../makefile.sub depend
+
+.PHONY : clean
+clean :
+	$(MAKE) -C lang -f ../makefile.sub clean
+	$(MAKE) -C io -f ../makefile.sub clean
+	$(MAKE) -C net -f ../makefile.sub clean
+	$(MAKE) -C util -f ../makefile.sub clean
+	$(MAKE) -C main -f ../makefile.sub clean
+	$(RM) oop lib/lib*
+	
